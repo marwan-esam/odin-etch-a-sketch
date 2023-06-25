@@ -12,30 +12,36 @@ html, body{
 body{
     display: flex;
     flex-direction: column;
-    /* justify-content: center; */
-    align-items: center;
+    justify-content: space-between;
+    align-items: stretch;
     background-size: contain;
     background-image: url('./images/paper.jpg');
 }
 
+.header{
+    text-align: center;
+}
+
 .content{
+    align-self: center;
     display: flex;
     flex-direction: row;
-    gap: 100px;
+    gap: 250px;
 }
 
 .container{
-    /* width:  258px;
-    height: 258px; */
+    width:  654px;
+    height: 654px;
     border: 1px solid black;
     display: flex;
     flex-direction: row;
     align-items: flex-start;
-    flex-wrap: wrap;
+    flex-wrap: wrap; 
 }
 
 .grid-cell{
     border: 0.1px solid rgba(1, 1, 1, 0.50);
+    background-color: transparent;
     /* width: 8px;
     height: 8px; */
 }
@@ -44,7 +50,7 @@ body{
     display: flex;
     flex-direction: column;
     align-items: flex-start;
-    gap: 30px;
+    gap: 50px;
 }
 
 .btn{
@@ -67,4 +73,37 @@ body{
 
 .btn-active:active{
     transform: translateY(4px);
+}
+
+.grid-size{
+    padding: 15px 25px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    background-color: #4CAF50;
+    outline: none;
+    color: #fff;
+    border-radius: 15px;
+    font-size: 24px;
+}
+
+.grid-size-range{
+    cursor: grab;
+    width: 200px;
+}
+
+.footer{
+    padding: 0;
+    margin-top: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 15px;
+    background-color: black;
+}
+
+.footer p, .footer a{
+    color: white;
 }

@@ -1,126 +1,194 @@
-const containerWidth = 650;
-const containerHeight = 650;
-const gridSize = 20 * 20;
-const container = document.querySelector('.container');
-let isMouseDown = false;
-let blackRainBowToggle = false;
-let eraserToggle = false;
-let darkenColor = false;
-let red;
-let green;
-let blue;
-let darkeningRatio = 0;
-let cellDarkeningVal = [];
-container.style.width = `${containerWidth + 2}px`;
-container.style.height = `${containerHeight + 2}px`;
-for(let i = 0 ; i < gridSize ; i++){
-    const cell = document.createElement('div');
-    cell.classList.add('grid-cell');
-    cell.setAttribute('num', `${i + 1}`);
-    cell.style.width = `${containerWidth / Math.sqrt(gridSize)}px`;
-    cell.style.height = `${containerHeight / Math.sqrt(gridSize)}px`;
-    container.appendChild(cell);
-}
+class Grid {
+    constructor(containerWidth, containerHeight, gridSize) {
+      this.containerWidth = containerWidth;
+      this.containerHeight = containerHeight;
+      this.gridSize = gridSize;
+      this.container = document.querySelector('.container');
+      this.isMouseDown = false;
+      this.blackRainBowToggle = false;
+      this.eraserToggle = false;
+      this.gridLineToggle = false;
+      this.darkenColor = false;
+      this.red;
+      this.green;
+      this.blue;
+      this.darkeningRatio = 0;
+      this.cellDarkeningVal = [];
+      this.container.style.width = `${this.containerWidth + 2}px`;
+      this.container.style.height = `${this.containerHeight + 2}px`;
+  
+      for (let i = 0; i < this.gridSize; i++) {
+        const cell = document.createElement('div');
+        cell.classList.add('grid-cell');
+        cell.setAttribute('num', `${i + 1}`);
+        cell.style.width = `${this.containerWidth / Math.sqrt(this.gridSize)}px`;
+        cell.style.height = `${this.containerHeight / Math.sqrt(this.gridSize)}px`;
+        this.container.appendChild(cell);
+      }
+  
+      this.grid = document.querySelectorAll('.grid-cell');
+  
+      this.grid.forEach((cell) => cell.addEventListener('mousedown', this.changeCellColor.bind(this)));
+      this.grid.forEach((cell) => cell.addEventListener('mouseenter', this.changeCellColor.bind(this)));
+      this.grid.forEach((cell) => cell.addEventListener('dragstart', function (e) { e.preventDefault() }));
+      this.grid.forEach((cell) => cell.addEventListener('click', this.changeCellColor.bind(this)));
+  
+      const clearButton = document.querySelector('.clear');
+      clearButton.addEventListener('click', this.clearGridCells.bind(this));
+  
+      this.blackRainbowButton = document.querySelector('.black-rainbow');
+      this.blackRainbowButton.textContent = "colorful (toggle)";
+      this.blackRainbowButton.style.border = "none";
+      this.blackRainbowButton.addEventListener('click', this.toggleBlackRainbow.bind(this));
+  
+      this.progressiveDarkeningButton = document.querySelector('.progressive-darkening');
+      this.progressiveDarkeningButton.style.opacity = 0.6;
+      this.progressiveDarkeningButton.style.cursor = "not-allowed";
+      this.progressiveDarkeningButton.addEventListener('click', this.toggleDarkenColor.bind(this));
+      this.progressiveDarkeningButton.style.border = "none";
+      this.progressiveDarkeningButton.classList.remove('btn-hover');
+      this.progressiveDarkeningButton.classList.remove('btn-active');
 
+      this.eraserButton = document.querySelector('.eraser');
+      this.eraserButton.style.border = "none";
+      this.eraserButton.addEventListener('click', this.toggleErase.bind(this));
 
-const grid = document.querySelectorAll('.grid-cell');
-
-
-function changeCellColor (mouseEvent) {
-    if(mouseEvent.buttons === 1){
-        if (blackRainBowToggle) {
-            // if(this.style.backgroundColor !== 'transparent' && this.style.backgroundColor !== 'black') return;
-            if(darkenColor && this.style.backgroundColor !== 'transparent'){
-                const cellColor = this.style.backgroundColor.substring(4, this.style.backgroundColor.length-1).replace(/ /g, '').split(',');
-                red = cellColor[0];
-                green = cellColor[1];
-                blue = cellColor[2];
-                function getMaxDarkening(a, b){
-                    return a > b ? a : b;
-                }
-                const maxColor = getMaxDarkening((red / 10), getMaxDarkening((green / 10), (blue / 10)));
-                const cellNumber = this.getAttribute('num');
-                if(cellDarkeningVal[cellNumber] === undefined) cellDarkeningVal[cellNumber] = Math.ceil(maxColor);
-                red = (red - (cellDarkeningVal[cellNumber]));
-                green = (green - (cellDarkeningVal[cellNumber]));
-                blue = (blue - (cellDarkeningVal[cellNumber]));
-            }
-            else{
-                red = Math.floor(Math.random() * 257);
-                green = Math.floor(Math.random() * 257);
-                blue = Math.floor(Math.random() * 257);
-            }
-            this.style.backgroundColor = `rgba(${red},${green},${blue},1)`
-        } else{
-            this.style.backgroundColor = 'rgba(0,0,0,1)';
+      this.gridLineButton = document.querySelector('.grid-line');
+      this.gridLineButton.addEventListener('click', this.toggleGridLine.bind(this));
+    }
+  
+    changeCellColor(mouseEvent) {
+      if (mouseEvent.buttons === 1) {
+        const cell = mouseEvent.target;
+        if(this.eraserToggle){
+            cell.style.backgroundColor = '';
         }
+        else if (this.blackRainBowToggle) {
+          if (this.darkenColor) {
+            if(cell.style.backgroundColor === ''){
+                this.red = Math.floor(Math.random() * 257);
+                this.green = Math.floor(Math.random() * 257);
+                this.blue = Math.floor(Math.random() * 257);
+                cell.style.backgroundColor = `rgba(${this.red},${this.green},${this.blue},1)`;
+            }
+            const cellColor = cell.style.backgroundColor.substring(4, cell.style.backgroundColor.length - 1).replace(/ /g, '').split(',');
+            this.red = cellColor[0];
+            this.green = cellColor[1];
+            this.blue = cellColor[2];
+  
+            function getMaxDarkening(a, b) {
+              return a > b ? a : b;
+            }
+  
+            const maxColor = getMaxDarkening((this.red / 10), getMaxDarkening((this.green / 10), (this.blue / 10)));
+            const cellNumber = cell.getAttribute('num');
+            if (this.cellDarkeningVal[cellNumber] === undefined) this.cellDarkeningVal[cellNumber] = Math.ceil(maxColor);
+            this.red = (this.red - (this.cellDarkeningVal[cellNumber]));
+            this.green = (this.green - (this.cellDarkeningVal[cellNumber]));
+            this.blue = (this.blue - (this.cellDarkeningVal[cellNumber]));
+          } else{
+            this.red = Math.floor(Math.random() * 257);
+            this.green = Math.floor(Math.random() * 257);
+            this.blue = Math.floor(Math.random() * 257);
+          }
+          cell.style.backgroundColor = `rgba(${this.red},${this.green},${this.blue},1)`
+        } else {
+          cell.style.backgroundColor = 'rgba(0,0,0,1)';
+        }
+      }
     }
+  
+    clearGridCells() {
+      this.grid.forEach(function (cell) { cell.style.backgroundColor = ''});
+    }
+  
+    toggleBlackRainbow() {
+      this.blackRainBowToggle = !this.blackRainBowToggle;
+      if(this.eraserToggle){
+        this.eraserToggle = false;
+        this.eraserButton.style.border = "none";
+      }
+      if (this.blackRainBowToggle) {
+        this.blackRainbowButton.style.border = "3px solid darkslategray";
+        this.blackRainbowButton.textContent = "black (toggle)";
+        this.progressiveDarkeningButton.classList.add('btn-hover');
+        this.progressiveDarkeningButton.classList.add('btn-active');
+        this.progressiveDarkeningButton.style.opacity = 1;
+        this.progressiveDarkeningButton.style.cursor = "pointer";
+      } else {
+        this.blackRainbowButton.style.border = "none";
+        this.blackRainbowButton.textContent = "colorful (toggle)";
+        this.progressiveDarkeningButton.style.opacity = 0.6;
+        this.progressiveDarkeningButton.style.cursor = "not-allowed";
+        this.progressiveDarkeningButton.style.border = "none";
+        this.progressiveDarkeningButton.classList.remove('btn-hover');
+        this.progressiveDarkeningButton.classList.remove('btn-active');
+        this.darkenColor = false;
+      }
+    }
+  
+    toggleDarkenColor() {
+      if (!this.blackRainBowToggle) return;
+      this.darkenColor = !this.darkenColor;
+      if (this.darkenColor) {
+        console.log(this.blackRainBowToggle);
+        this.progressiveDarkeningButton.style.border = "3px solid darkslategray";
+      } else {
+        this.progressiveDarkeningButton.style.border = "none";
+      }
+    }
+  
+    toggleErase() {
+      this.eraserToggle = !this.eraserToggle;
+      if(this.eraserToggle){
+        this.eraserButton.style.border = "3px solid darkslategray";
+        this.blackRainbowButton.style.border = "none";
+        this.darkenColor = false;
+        this.progressiveDarkeningButton.style.opacity = 0.6;
+        this.progressiveDarkeningButton.style.cursor = "not-allowed";
+        this.progressiveDarkeningButton.style.border = "none";
+      }
+      else{
+        this.eraserButton.style.border = "none";
+        this.blackRainbowButton.style.border = "3px solid darkslategray";
+        this.progressiveDarkeningButton.style.opacity = 1;
+        this.progressiveDarkeningButton.style.cursor = "pointer";
+      }
+    }
+
+    toggleGridLine () {
+        this.gridLineToggle = !this.gridLineToggle;
+        if(this.gridLineToggle){
+            const cells = this.container.childNodes;
+            cells.forEach((cell) => cell.style.border = "none");
+            this.gridLineButton.textContent = "show line (toggle)";
+        }
+        else{
+            const cells = this.container.childNodes;
+            cells.forEach((cell) => cell.style.border = "0.1px solid rgba(1, 1, 1, 0.50)");
+            this.gridLineButton.textContent = "hide line (toggle)";
+        }
+
+    }
+  }
+  
+const gridSizeInput = document.querySelector('.grid-size-range');
+const gridSizeVal = document.querySelector('.grid-size-val');
+gridSizeInput.value = 16;
+gridSizeVal.textContent = `${gridSizeInput.value}x${gridSizeInput.value}`;
+let grid = new Grid(650, 650, 16 * 16);
+
+function showNewGrid (event) {
+    const inputValue = event.target.value;
+    while(grid.container.hasChildNodes()){
+        grid.container.removeChild(grid.container.firstChild);
+    }
+    const newGrid = new Grid(650, 650, inputValue * inputValue);
+    grid = newGrid;
+    gridSizeVal.textContent = `${inputValue}x${inputValue}`;
+    return inputValue;
 }
 
-grid.forEach((cell) => cell.addEventListener('mousedown', changeCellColor));
-grid.forEach((cell) => cell.addEventListener('mouseenter', changeCellColor));
-grid.forEach((cell) => cell.addEventListener('dragstart', function (e) {e.preventDefault()}))
-grid.forEach((cell) => cell.addEventListener('click', changeCellColor));
+gridSizeInput.addEventListener('input', showNewGrid);
 
-const clearButton = document.querySelector('.clear');
-
-function clearGridCells(){
-    grid.forEach(function (cell) {cell.style.backgroundColor = 'transparent'});
-}
-
-clearButton.addEventListener('click', clearGridCells);
-
-const blackRainbowButton = document.querySelector('.black-rainbow');
-blackRainbowButton.textContent = "colorful (toggle)";
-
-function toggleBlackRainbow(){
-    blackRainBowToggle = !blackRainBowToggle;
-    if(blackRainBowToggle){
-        blackRainbowButton.style.border = "3px solid darkslategray";
-        blackRainbowButton.textContent = "black (toggle)";
-        progressiveDarkeningButton.classList.add('btn-hover');
-        progressiveDarkeningButton.classList.add('btn-active');
-        progressiveDarkeningButton.style.cssText = "cursor: pointer opacity: 1";
-        progressiveDarkeningButton.style.cursor = "pointer";
-    }
-    else{
-        blackRainbowButton.style.border = "none";
-        blackRainbowButton.textContent = "colorful (toggle)";
-        progressiveDarkeningButton.style.opacity = 0.6;
-        progressiveDarkeningButton.style.cursor = "not-allowed";
-        progressiveDarkeningButton.style.border = "none";
-        progressiveDarkeningButton.classList.remove('btn-hover');
-        progressiveDarkeningButton.classList.remove('btn-active');
-        darkenColor = false;
-    }
-}
-
-
-blackRainbowButton.addEventListener('click', toggleBlackRainbow);
-
-const progressiveDarkeningButton = document.querySelector('.progressive-darkening');
-progressiveDarkeningButton.style.opacity = 0.6;
-progressiveDarkeningButton.style.cursor = "not-allowed";
-
-progressiveDarkeningButton.addEventListener('click', function () {
-    if(!blackRainBowToggle) return;
-    darkenColor = !darkenColor;
-    if(darkenColor){
-        progressiveDarkeningButton.style.border = "3px solid darkslategray";
-    }
-    else{
-        progressiveDarkeningButton.style.border = "none";
-    }
-});
-
-
-const eraserButton = document.querySelector('.eraser');
-
-function toggleErase(){
-
-}
-
-eraserButton.addEventListener('click', toggleErase);
-
-
-
+  
