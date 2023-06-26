@@ -54,6 +54,7 @@ class Grid {
       this.eraserButton.addEventListener('click', this.toggleErase.bind(this));
 
       this.gridLineButton = document.querySelector('.grid-line');
+      this.gridLineButton.textContent = 'hide Line (toggle)';
       this.gridLineButton.addEventListener('click', this.toggleGridLine.bind(this));
     }
   
