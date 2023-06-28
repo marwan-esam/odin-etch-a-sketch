@@ -14,18 +14,33 @@ class Grid {
       this.blue;
       this.darkeningRatio = 0;
       this.cellDarkeningVal = [];
-      this.container.style.width = `${this.containerWidth + 2}px`;
-      this.container.style.height = `${this.containerHeight + 2}px`;
+      this.container.style.width = `${this.containerWidth}px`;
+      this.container.style.height = `${this.containerHeight}px`;
   
-      for (let i = 0; i < this.gridSize; i++) {
-        const cell = document.createElement('div');
-        cell.classList.add('grid-cell');
-        cell.setAttribute('num', `${i + 1}`);
-        cell.style.width = `${this.containerWidth / Math.sqrt(this.gridSize)}px`;
-        cell.style.height = `${this.containerHeight / Math.sqrt(this.gridSize)}px`;
-        this.container.appendChild(cell);
+      // for (let i = 0; i < this.gridSize; i++) {
+      //   const cell = document.createElement('div');
+      //   cell.classList.add('grid-cell');
+      //   cell.setAttribute('num', `${i + 1}`);
+      //   cell.style.width = `${this.containerWidth / Math.sqrt(this.gridSize)}px`;
+      //   cell.style.height = `${this.containerHeight / Math.sqrt(this.gridSize)}px`;
+      //   this.container.appendChild(cell);
+      // }
+
+      const columns = Math.sqrt(this.gridSize);
+      const cells = Math.sqrt(this.gridSize);
+      let cellNum = 0;
+      for(let i = 0 ; i < columns ; i++){
+        const column = document.createElement('div');
+        column.classList.add('column');
+        for(let j = 0 ; j < cells ; j++){
+          const cell = document.createElement('div');
+          cell.classList.add('grid-cell');
+          cell.setAttribute('num', `${cellNum++}`);
+          cell.style.height = `${this.containerHeight / cells}px`
+          column.appendChild(cell);
+        }
+        this.container.appendChild(column);
       }
-  
       this.grid = document.querySelectorAll('.grid-cell');
   
       this.grid.forEach((cell) => cell.addEventListener('mousedown', this.changeCellColor.bind(this)));
@@ -159,13 +174,12 @@ class Grid {
 
     toggleGridLine () {
         this.gridLineToggle = !this.gridLineToggle;
+        const cells = this.container.querySelectorAll('.grid-cell');
         if(this.gridLineToggle){
-            const cells = this.container.childNodes;
             cells.forEach((cell) => cell.style.border = "none");
             this.gridLineButton.textContent = "show line (toggle)";
         }
         else{
-            const cells = this.container.childNodes;
             cells.forEach((cell) => cell.style.border = "0.1px solid rgba(1, 1, 1, 0.50)");
             this.gridLineButton.textContent = "hide line (toggle)";
         }
@@ -177,19 +191,21 @@ const gridSizeInput = document.querySelector('.grid-size-range');
 const gridSizeVal = document.querySelector('.grid-size-val');
 gridSizeInput.value = 16;
 gridSizeVal.textContent = `${gridSizeInput.value}x${gridSizeInput.value}`;
-let grid = new Grid(650, 650, 16 * 16);
-
+let grid = new Grid(652, 652, 16 * 16);;
 function showNewGrid (event) {
     const inputValue = event.target.value;
-    while(grid.container.hasChildNodes()){
-        grid.container.removeChild(grid.container.firstChild);
+    while(this.container.hasChildNodes()){
+        this.container.removeChild(this.container.firstChild);
     }
-    const newGrid = new Grid(650, 650, inputValue * inputValue);
-    grid = newGrid;
-    gridSizeVal.textContent = `${inputValue}x${inputValue}`;
-    return inputValue;
+    grid = new Grid(652, 652, inputValue * inputValue);
 }
 
-gridSizeInput.addEventListener('input', showNewGrid);
+function changeGridSizeLabel (event) {
+  const inputValue = event.target.value;
+  gridSizeVal.textContent = `${inputValue}x${inputValue}`;
+}
+
+gridSizeInput.addEventListener('change', showNewGrid.bind(grid));
+gridSizeInput.addEventListener('input', changeGridSizeLabel);
 
   
